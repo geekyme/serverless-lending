@@ -1,0 +1,26 @@
+{
+  "name": "loan-origination-system",
+  "version": "1.0.0",
+  "description": "Serverless Loan Origination System",
+  "scripts": {
+    "start": "serverless offline start --stage local",
+    "deploy:local": "serverless deploy --stage local",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1409.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/node": "^16.18.106",
+    "@types/uuid": "^8.3.4",
+    "serverless": "^3.33.0",
+    "serverless-localstack": "^1.1.1",
+    "serverless-offline": "^12.0.4",
+    "serverless-step-functions": "^3.13.1",
+    "typescript": "^4.9.5"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "Comment": "Loan Application Workflow",
+  "StartAt": "SubmitApplication",
+  "States": {
+    "SubmitApplication": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["applicationSubmission", "Arn"]
+      },
+      "Next": "UploadDocuments"
+    },
+    "UploadDocuments": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["documentUpload", "Arn"]
+      },
+      "Next": "PerformCreditCheck"
+    },
+    "PerformCreditCheck": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["creditCheck", "Arn"]
+      },
+      "Next": "UnderwritingDecision"
+    },
+    "UnderwritingDecision": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["underwritingEngine", "Arn"]
+      },
+      "Next": "IsApproved"
+    },
+    "IsApproved": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.decision",
+          "StringEquals": "APPROVED",
+          "Next": "SendApprovalNotification"
+        },
+        {
+          "Variable": "$.decision",
+          "StringEquals": "DENIED",
+          "Next": "SendDenialNotification"
+        }
+      ]
+    },
+    "SendApprovalNotification": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["notificationSystem", "Arn"]
+      },
+      "Parameters": {
+        "applicationId.$": "$.applicationId",
+        "message": "Your loan application has been approved!"
+      },
+      "End": true
+    },
+    "SendDenialNotification": {
+      "Type": "Task",
+      "Resource": {
+        "Fn::GetAtt": ["notificationSystem", "Arn"]
+      },
+      "Parameters": {
+        "applicationId.$": "$.applicationId",
+        "message": "We're sorry, but your loan application has been denied."
+      },
+      "End": true
+    }
+  }
+}

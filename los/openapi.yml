@@ -1,0 +1,248 @@
+openapi: 3.0.0
+info:
+  title: Loan Origination System API
+  version: 1.0.0
+  description: API for submitting loan applications and uploading documents for Small and Medium Businesses (SMBs)
+
+servers:
+  - url: https://api.loanoriginationsystem.com/v1
+
+paths:
+  /applications:
+    post:
+      summary: Submit a new loan application
+      operationId: submitApplication
+      tags:
+        - Applications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoanApplicationRequest"
+      responses:
+        "201":
+          description: Application submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /documents:
+    post:
+      summary: Upload a document for a loan application
+      operationId: uploadDocument
+      tags:
+        - Documents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUploadRequest"
+      responses:
+        "201":
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    LoanApplicationRequest:
+      type: object
+      required:
+        - business
+        - requestedAmount
+        - loanPurpose
+        - loanTerm
+      properties:
+        business:
+          $ref: "#/components/schemas/Business"
+        requestedAmount:
+          type: number
+          format: float
+        loanPurpose:
+          type: string
+        loanTerm:
+          type: integer
+          description: Loan term in months
+        collateralType:
+          type: string
+        collateralValue:
+          type: number
+          format: float
+
+    Business:
+      type: object
+      required:
+        - legalName
+        - businessStructure
+        - taxId
+        - dateEstablished
+        - numberOfEmployees
+        - annualRevenue
+        - industryCode
+        - address
+        - contactInformation
+        - financialStatements
+      properties:
+        legalName:
+          type: string
+        tradingName:
+          type: string
+        businessStructure:
+          type: string
+          enum: [SOLE_PROPRIETORSHIP, PARTNERSHIP, LLC, CORPORATION]
+        taxId:
+          type: string
+        dateEstablished:
+          type: string
+          format: date
+        numberOfEmployees:
+          type: integer
+        annualRevenue:
+          type: number
+          format: float
+        industryCode:
+          type: string
+        address:
+          $ref: "#/components/schemas/Address"
+        contactInformation:
+          $ref: "#/components/schemas/ContactInformation"
+        financialStatements:
+          $ref: "#/components/schemas/FinancialStatements"
+        creditHistory:
+          $ref: "#/components/schemas/CreditHistory"
+
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+
+    ContactInformation:
+      type: object
+      properties:
+        primaryContactName:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+
+    FinancialStatements:
+      type: object
+      properties:
+        balanceSheet:
+          $ref: "#/components/schemas/BalanceSheet"
+        incomeStatement:
+          $ref: "#/components/schemas/IncomeStatement"
+        cashFlowStatement:
+          $ref: "#/components/schemas/CashFlowStatement"
+
+    BalanceSheet:
+      type: object
+      properties:
+        totalAssets:
+          type: number
+          format: float
+        totalLiabilities:
+          type: number
+          format: float
+        ownersEquity:
+          type: number
+          format: float
+        currentAssets:
+          type: number
+          format: float
+        currentLiabilities:
+          type: number
+          format: float
+
+    IncomeStatement:
+      type: object
+      properties:
+        revenue:
+          type: number
+          format: float
+        expenses:
+          type: number
+          format: float
+        netIncome:
+          type: number
+          format: float
+
+    CashFlowStatement:
+      type: object
+      properties:
+        operatingCashFlow:
+          type: number
+          format: float
+        investingCashFlow:
+          type: number
+          format: float
+        financingCashFlow:
+          type: number
+          format: float
+
+    CreditHistory:
+      type: object
+      properties:
+        bankruptcies:
+          type: integer
+        liens:
+          type: integer
+        judgments:
+          type: integer
+        defaultedLoans:
+          type: integer
+
+    ApplicationResponse:
+      type: object
+      properties:
+        applicationId:
+          type: string
+        businessId:
+          type: string
+
+    DocumentUploadRequest:
+      type: object
+      required:
+        - applicationId
+        - documentType
+        - fileContent
+      properties:
+        applicationId:
+          type: string
+        documentType:
+          type: string
+        fileContent:
+          type: string
+          format: byte
+          description: Base64 encoded file content
+
+    DocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+        key:
+          type: string
