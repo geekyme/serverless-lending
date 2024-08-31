@@ -6,14 +6,14 @@ export const handler: Handler = async (event) => {
   try {
     const { applicationId } = event;
 
-    // Simulate credit check with more realistic data
+    // Simulate credit check
     const creditReport: CreditReport = {
-      creditScore: Math.floor(Math.random() * 300) + 500, // Score between 500 and 800
+      creditScore: Math.floor(Math.random() * (850 - 300 + 1)) + 300,
       reportDate: new Date().toISOString(),
-      delinquencies: Math.floor(Math.random() * 5), // 0 to 4 delinquencies
-      bankruptcies: Math.floor(Math.random() * 2), // 0 or 1 bankruptcy
-      creditUtilization: Math.random() * 100, // 0% to 100% credit utilization
-      lengthOfCreditHistory: Math.floor(Math.random() * 240) + 12, // 1 to 21 years (in months)
+      delinquencies: Math.floor(Math.random() * 5),
+      bankruptcies: Math.floor(Math.random() * 2),
+      creditUtilization: Math.random() * 100,
+      lengthOfCreditHistory: Math.floor(Math.random() * 240) + 12, // 1-20 years in months
     };
 
     await underwritingRepository.createCreditReport(
@@ -21,7 +21,7 @@ export const handler: Handler = async (event) => {
       creditReport
     );
 
-    return { applicationId, creditReport };
+    return { applicationId, creditScore: creditReport.creditScore };
   } catch (error) {
     console.error("Error performing credit check:", error);
     throw error;

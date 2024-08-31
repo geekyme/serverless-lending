@@ -1,41 +1,24 @@
-import { DynamoDB } from "aws-sdk";
-import { Business, BusinessKeys } from "../models/business";
+import { dynamoDB } from "../config/awsConfig";
+import { Business } from "../models/business";
 
-const dynamodb = new DynamoDB.DocumentClient();
+export const BusinessKeys = {
+  pk: (id: string) => `BUSINESS#${id}`,
+  sk: (id: string) => `METADATA#${id}`,
+  gsi1pk: (id: string) => `BUSINESS#${id}`,
+  gsi1sk: (id: string) => `BUSINESS#${id}`,
+};
 
-export class BusinessRepository {
-  private tableName = "Businesses";
-
+export const businessRepository = {
   async create(business: Business): Promise<void> {
-    const item = {
-      PK: BusinessKeys.pk(business.id),
-      SK: BusinessKeys.sk(business.id),
-      GSI1PK: BusinessKeys.gsi1pk(business.id),
-      GSI1SK: BusinessKeys.gsi1sk(business.id),
-      ...business,
+    const params = {
+      TableName: "Businesses",
+      Item: {
+        PK: BusinessKeys.pk(business.id),
+        SK: BusinessKeys.sk(business.id),
+        ...business,
+      },
     };
 
-    await dynamodb
-      .put({
-        TableName: this.tableName,
-        Item: item,
-      })
-      .promise();
-  }
-
-  async getById(businessId: string): Promise<Business | null> {
-    const result = await dynamodb
-      .get({
-        TableName: this.tableName,
-        Key: {
-          PK: BusinessKeys.pk(businessId),
-          SK: BusinessKeys.sk(businessId),
-        },
-      })
-      .promise();
-
-    return (result.Item as Business) || null;
-  }
-}
-
-export const businessRepository = new BusinessRepository();
+    await dynamoDB.put(params).promise();
+  },
+};

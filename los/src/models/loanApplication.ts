@@ -14,11 +14,5 @@ export interface LoanApplication {
   debtServiceCoverageRatio?: number;
   lastReviewDate?: string;
   underwriterNotes?: string;
+  applicantEmail: string;
 }
-
-export const LoanApplicationKeys = {
-  pk: (id: string) => `APPLICATION#${id}`,
-  sk: (id: string) => `METADATA#${id}`,
-  gsi1pk: (businessId: string) => `BUSINESS#${businessId}`,
-  gsi1sk: (id: string) => `APPLICATION#${id}`,
-};

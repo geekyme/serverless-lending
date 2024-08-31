@@ -17,10 +17,3 @@ export interface UnderwritingDecision {
   reasonCodes?: string[];
   underwriterNotes?: string;
 }
-
-export const UnderwritingKeys = {
-  creditReportPk: (applicationId: string) => `APPLICATION#${applicationId}`,
-  creditReportSk: (applicationId: string) => `CREDITREPORT#${applicationId}`,
-  decisionPk: (applicationId: string) => `APPLICATION#${applicationId}`,
-  decisionSk: (applicationId: string) => `DECISION#${applicationId}`,
-};

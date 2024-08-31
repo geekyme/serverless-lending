@@ -2,71 +2,68 @@ service: loan-origination-system
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
   environment:
     STAGE: ${self:provider.stage}
   deploymentMethod: direct
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:UpdateItem
-        - dynamodb:Query
-      Resource:
-        - arn:aws:dynamodb:${self:provider.region}:*:table/LoanApplications
-        - arn:aws:dynamodb:${self:provider.region}:*:table/Businesses
-        - arn:aws:dynamodb:${self:provider.region}:*:table/Underwriting
-    - Effect: Allow
-      Action:
-        - s3:PutObject
-      Resource: arn:aws:s3:::${self:custom.documentsBucketName}/*
+  logs:
+    lambda: true
+
+custom:
+  localstack:
+    stages:
+      - dev
+    host: http://localhost
+    edgePort: 4566
+    autostart: false
+    lambda:
+      mountCode: true
+  documentsBucketName: los-documents-${self:provider.stage}
 
 plugins:
   - serverless-step-functions
   - serverless-offline
   - serverless-localstack
 
-custom:
-  localstack:
-    stages:
-      - local
-    host: http://localhost
-    edgePort: 4566
-    autostart: false # Change this to false
-    lambda:
-      mountCode: True
-  documentsBucketName: los-documents-${self:provider.stage}
-
 functions:
   applicationSubmission:
-    handler: src/handlers/applicationSubmission.handler
+    handler: dist/handlers/applicationSubmission.handler
     events:
       - http:
           path: applications
           method: post
 
   documentUpload:
-    handler: src/handlers/documentUpload.handler
+    handler: dist/handlers/documentUpload.handler
+    timeout: 15
+    environment:
+      DOCUMENTS_BUCKET: ${self:custom.documentsBucketName}
+      LOAN_APPLICATION_WORKFLOW_ARN:
+        Ref: LoanApplicationWorkflow
     events:
       - http:
           path: documents
           method: post
 
   creditCheck:
-    handler: src/handlers/creditCheck.handler
+    handler: dist/handlers/creditCheck.handler
 
   underwritingEngine:
-    handler: src/handlers/underwritingEngine.handler
+    handler: dist/handlers/underwritingEngine.handler
 
   notificationSystem:
-    handler: src/handlers/notificationSystem.handler
+    handler: dist/handlers/notificationSystem.handler
+    timeout: 120
+    environment:
+      NOTIFICATION_TOPIC_ARN:
+        Ref: NotificationTopic
 
 stepFunctions:
   stateMachines:
     loanApplicationWorkflow:
+      id: LoanApplicationWorkflow
       definition: ${file(stepFunctions/loanApplicationWorkflow.json)}
 
 resources:
@@ -162,3 +159,8 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:custom.documentsBucketName}
+
+    NotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: loan-notifications-${self:provider.stage}

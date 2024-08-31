@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Serverless Loan Origination System",
   "scripts": {
-    "start": "serverless offline start --stage local",
-    "deploy:local": "serverless deploy --stage local",
+    "start": "serverless offline start --stage dev",
+    "deploy:dev": "serverless deploy --stage dev",
     "build": "tsc",
     "watch": "tsc -w",
     "typecheck": "tsc --noEmit"

@@ -1,87 +1,52 @@
 import { Handler } from "aws-lambda";
-import { underwritingRepository } from "../repositories/underwritingRepository";
 import { loanApplicationRepository } from "../repositories/loanApplicationRepository";
-import { businessRepository } from "../repositories/businessRepository"; // Add this import
-import { UnderwritingDecision } from "../models/underwriting";
-import { calculateDebtServiceCoverageRatio } from "../utils/financialCalculations";
+import { underwritingRepository } from "../repositories/underwritingRepository";
+import { UnderwritingDecision, CreditReport } from "../models/underwriting";
 
 export const handler: Handler = async (event) => {
   try {
     const { applicationId } = event;
 
-    const creditReport = await underwritingRepository.getCreditReport(
-      applicationId
-    );
-    const loanApplication = await loanApplicationRepository.getById(
-      applicationId
-    );
+    // Fetch loan application and credit report
+    const application = await loanApplicationRepository.getById(applicationId);
+    const creditReport: CreditReport =
+      await underwritingRepository.getCreditReport(applicationId);
 
-    if (!creditReport || !loanApplication) {
-      throw new Error("Credit report or loan application not found");
-    }
-
-    const business = await businessRepository.getById(
-      loanApplication.businessId
-    );
-
-    if (!business) {
-      throw new Error("Business not found");
-    }
-
-    const dscr = calculateDebtServiceCoverageRatio(
-      business.financialStatements,
-      loanApplication
-    );
-
-    // Implement more sophisticated underwriting logic here
-    let decision: UnderwritingDecision["decision"] = "DENIED";
-    let approvedAmount = 0;
-    let interestRate = 0;
-    const reasonCodes: string[] = [];
-
-    if (creditReport.creditScore >= 700 && dscr >= 1.25) {
-      decision = "APPROVED";
-      approvedAmount = loanApplication.requestedAmount;
-      interestRate = 5 + (800 - creditReport.creditScore) / 100; // Base rate of 5% plus adjustment for credit score
-    } else if (creditReport.creditScore >= 650 && dscr >= 1.1) {
-      decision = "APPROVED";
-      approvedAmount = Math.min(
-        loanApplication.requestedAmount,
-        business.annualRevenue * 0.2
-      );
-      interestRate = 7 + (750 - creditReport.creditScore) / 50;
+    // Simple underwriting logic (this should be much more comprehensive in a real system)
+    let decision: UnderwritingDecision;
+    if (creditReport.creditScore >= 700) {
+      decision = {
+        decision: "APPROVED",
+        decisionDate: new Date().toISOString(),
+        approvedAmount: application.requestedAmount,
+        interestRate: 5.0,
+        term: 60, // Assuming a 5-year term
+        conditions: ["Proof of income", "Verification of employment"],
+        reasonCodes: ["GOOD_CREDIT_SCORE", "SUFFICIENT_INCOME"],
+        underwriterNotes:
+          "Approved based on excellent credit score and sufficient income.",
+      };
     } else {
-      reasonCodes.push(
-        creditReport.creditScore < 650
-          ? "LOW_CREDIT_SCORE"
-          : "INSUFFICIENT_CASH_FLOW"
-      );
+      decision = {
+        decision: "DENIED",
+        decisionDate: new Date().toISOString(),
+        reasonCodes: ["LOW_CREDIT_SCORE"],
+        underwriterNotes: "Denied due to low credit score.",
+      };
     }
 
-    const underwritingDecision: UnderwritingDecision = {
-      decision,
-      decisionDate: new Date().toISOString(),
-      approvedAmount,
-      interestRate,
-      term: loanApplication.loanTerm,
-      reasonCodes,
+    const decisionWithId = {
+      applicationId,
+      applicantEmail: application.applicantEmail,
+      ...decision,
     };
 
     await underwritingRepository.createUnderwritingDecision(
       applicationId,
-      underwritingDecision
+      decision
     );
 
-    // Update application status
-    await loanApplicationRepository.updateApplication(applicationId, {
-      status: decision,
-      approvedAmount,
-      interestRate,
-      debtServiceCoverageRatio: dscr,
-      lastReviewDate: new Date().toISOString(),
-    });
-
-    return { applicationId, decision };
+    return decisionWithId;
   } catch (error) {
     console.error("Error in underwriting engine:", error);
     throw error;

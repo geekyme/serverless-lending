@@ -28,6 +28,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       loanTerm: applicationData.loanTerm,
       collateralType: applicationData.collateralType,
       collateralValue: applicationData.collateralValue,
+      applicantEmail: applicationData.applicantEmail,
     };
 
     await loanApplicationRepository.create(loanApplication);

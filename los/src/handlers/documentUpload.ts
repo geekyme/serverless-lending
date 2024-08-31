@@ -1,17 +1,16 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { S3 } from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { loanApplicationRepository } from "../repositories/loanApplicationRepository";
 import { Document } from "../models/document";
-
-const s3 = new S3();
+import { s3 } from "../config/awsConfig";
+import { StepFunctions } from "aws-sdk";
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     const body = event.body ? JSON.parse(event.body) : {};
-    const { applicationId, documentType, fileContent } = body;
+    const { applicationId, documentType, fileContent, fileName } = body;
 
-    if (!applicationId || !documentType || !fileContent) {
+    if (!applicationId || !documentType || !fileContent || !fileName) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: "Missing required fields" }),
@@ -19,7 +18,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
 
     const documentId = uuidv4();
-    const key = `${applicationId}/${documentId}`;
+    const key = `${applicationId}/${documentId}-${fileName}`;
 
     // Upload file to S3
     await s3
@@ -42,6 +41,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     // Add document to the loan application
     await loanApplicationRepository.addDocument(document);
+
+    // Start the Step Function execution
+    const stepFunctions = new StepFunctions();
+    await stepFunctions
+      .startExecution({
+        stateMachineArn: process.env.LOAN_APPLICATION_WORKFLOW_ARN || "",
+        input: JSON.stringify({ applicationId }),
+      })
+      .promise();
 
     return {
       statusCode: 201,

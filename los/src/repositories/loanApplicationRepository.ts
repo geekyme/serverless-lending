@@ -1,92 +1,59 @@
-import { DynamoDB } from "aws-sdk";
-import {
-  LoanApplication,
-  LoanApplicationKeys,
-} from "../models/loanApplication";
-import { Document, DocumentKeys } from "../models/document";
+import { dynamoDB } from "../config/awsConfig";
+import { LoanApplication } from "../models/loanApplication";
+import { Document } from "../models/document";
 
-const dynamodb = new DynamoDB.DocumentClient();
+const LoanApplicationKeys = {
+  pk: (id: string) => `APPLICATION#${id}`,
+  sk: (id: string) => `METADATA#${id}`,
+  gsi1pk: (businessId: string) => `BUSINESS#${businessId}`,
+  gsi1sk: (id: string) => `APPLICATION#${id}`,
+};
 
-export class LoanApplicationRepository {
-  private tableName = "LoanApplications";
-
-  async create(application: LoanApplication): Promise<void> {
-    const item = {
-      PK: LoanApplicationKeys.pk(application.id),
-      SK: LoanApplicationKeys.sk(application.id),
-      GSI1PK: LoanApplicationKeys.gsi1pk(application.businessId),
-      GSI1SK: LoanApplicationKeys.gsi1sk(application.id),
-      ...application,
+export const loanApplicationRepository = {
+  dynamoDB,
+  async create(loanApplication: LoanApplication): Promise<void> {
+    const params = {
+      TableName: "LoanApplications",
+      Item: {
+        PK: LoanApplicationKeys.pk(loanApplication.id),
+        SK: LoanApplicationKeys.sk(loanApplication.id),
+        GSI1PK: LoanApplicationKeys.gsi1pk(loanApplication.businessId),
+        GSI1SK: LoanApplicationKeys.gsi1sk(loanApplication.id),
+        ...loanApplication,
+      },
     };
 
-    await dynamodb
-      .put({
-        TableName: this.tableName,
-        Item: item,
-      })
-      .promise();
-  }
+    await dynamoDB.put(params).promise();
+  },
 
-  async getById(applicationId: string): Promise<LoanApplication | null> {
-    const result = await dynamodb
-      .get({
-        TableName: this.tableName,
-        Key: {
-          PK: LoanApplicationKeys.pk(applicationId),
-          SK: LoanApplicationKeys.sk(applicationId),
-        },
-      })
-      .promise();
+  async getById(applicationId: string): Promise<LoanApplication> {
+    const params = {
+      TableName: "LoanApplications",
+      Key: {
+        PK: LoanApplicationKeys.pk(applicationId),
+        SK: LoanApplicationKeys.sk(applicationId),
+      },
+    };
 
-    return (result.Item as LoanApplication) || null;
-  }
-
-  async updateApplication(
-    applicationId: string,
-    updates: Partial<LoanApplication>
-  ): Promise<void> {
-    const updateExpression =
-      "set " +
-      Object.keys(updates)
-        .map((key) => `#${key} = :${key}`)
-        .join(", ");
-    const expressionAttributeNames = Object.keys(updates).reduce(
-      (acc, key) => ({ ...acc, [`#${key}`]: key }),
-      {}
-    );
-    const expressionAttributeValues = Object.entries(updates).reduce(
-      (acc, [key, value]) => ({ ...acc, [`:${key}`]: value }),
-      {}
-    );
-
-    await dynamodb
-      .update({
-        TableName: this.tableName,
-        Key: {
-          PK: LoanApplicationKeys.pk(applicationId),
-          SK: LoanApplicationKeys.sk(applicationId),
-        },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: expressionAttributeValues,
-      })
-      .promise();
-  }
+    const result = await dynamoDB.get(params).promise();
+    return result.Item as LoanApplication;
+  },
 
   async addDocument(document: Document): Promise<void> {
-    const item = {
-      PK: DocumentKeys.pk(document.applicationId),
-      SK: DocumentKeys.sk(document.id),
-      ...document,
+    const params = {
+      TableName: "LoanApplications",
+      Key: {
+        PK: LoanApplicationKeys.pk(document.applicationId),
+        SK: LoanApplicationKeys.sk(document.applicationId),
+      },
+      UpdateExpression:
+        "SET documents = list_append(if_not_exists(documents, :empty_list), :document)",
+      ExpressionAttributeValues: {
+        ":document": [document],
+        ":empty_list": [],
+      },
     };
 
-    await dynamodb
-      .put({
-        TableName: this.tableName,
-        Item: item,
-      })
-      .promise();
-  }
-}
-
-export const loanApplicationRepository = new LoanApplicationRepository();
+    await dynamoDB.update(params).promise();
+  },
+};

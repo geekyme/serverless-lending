@@ -1,24 +1,29 @@
 import { Handler } from "aws-lambda";
 import { SNS } from "aws-sdk";
-
-const sns = new SNS();
+import { sns } from "../config/awsConfig";
 
 export const handler: Handler = async (event) => {
   try {
-    const { applicationId, message } = event;
+    const { applicationId, message, recipient } = event;
 
-    // Simulate sending notification
-    console.log(
-      `Sending notification for application ${applicationId}: ${message}`
-    );
+    const params: SNS.PublishInput = {
+      Message: message,
+      TopicArn: process.env.NOTIFICATION_TOPIC_ARN,
+      MessageAttributes: {
+        applicationId: {
+          DataType: "String",
+          StringValue: applicationId,
+        },
+        recipient: {
+          DataType: "String",
+          StringValue: recipient,
+        },
+      },
+    };
 
-    // In a real scenario, you would use SNS to send the notification
-    // await sns.publish({
-    //   TopicArn: process.env.NOTIFICATION_TOPIC_ARN,
-    //   Message: JSON.stringify({ applicationId, message }),
-    // }).promise();
+    await sns.publish(params).promise();
 
-    return { success: true };
+    return { message: "Notification sent successfully" };
   } catch (error) {
     console.error("Error sending notification:", error);
     throw error;

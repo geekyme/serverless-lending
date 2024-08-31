@@ -1,21 +1,7 @@
 {
   "Comment": "Loan Application Workflow",
-  "StartAt": "SubmitApplication",
+  "StartAt": "PerformCreditCheck",
   "States": {
-    "SubmitApplication": {
-      "Type": "Task",
-      "Resource": {
-        "Fn::GetAtt": ["applicationSubmission", "Arn"]
-      },
-      "Next": "UploadDocuments"
-    },
-    "UploadDocuments": {
-      "Type": "Task",
-      "Resource": {
-        "Fn::GetAtt": ["documentUpload", "Arn"]
-      },
-      "Next": "PerformCreditCheck"
-    },
     "PerformCreditCheck": {
       "Type": "Task",
       "Resource": {
@@ -52,7 +38,8 @@
       },
       "Parameters": {
         "applicationId.$": "$.applicationId",
-        "message": "Your loan application has been approved!"
+        "message": "Your loan application has been approved!",
+        "recipient.$": "$.applicantEmail"
       },
       "End": true
     },
@@ -63,7 +50,8 @@
       },
       "Parameters": {
         "applicationId.$": "$.applicationId",
-        "message": "We're sorry, but your loan application has been denied."
+        "message": "We're sorry, but your loan application has been denied.",
+        "recipient.$": "$.applicantEmail"
       },
       "End": true
     }

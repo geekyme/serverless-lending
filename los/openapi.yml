@@ -5,7 +5,7 @@ info:
   description: API for submitting loan applications and uploading documents for Small and Medium Businesses (SMBs)
 
 servers:
-  - url: https://api.loanoriginationsystem.com/v1
+  - url: http://localhost:4566/restapis/bysdf8fgq1/local/_user_request_
 
 paths:
   /applications:

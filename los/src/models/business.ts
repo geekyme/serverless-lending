@@ -64,10 +64,3 @@ interface CreditHistory {
   judgments: number;
   defaultedLoans: number;
 }
-
-export const BusinessKeys = {
-  pk: (id: string) => `BUSINESS#${id}`,
-  sk: (id: string) => `METADATA#${id}`,
-  gsi1pk: (id: string) => `BUSINESS#${id}`,
-  gsi1sk: (id: string) => `BUSINESS#${id}`,
-};

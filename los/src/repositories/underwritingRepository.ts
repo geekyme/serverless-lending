@@ -1,11 +1,12 @@
-import { DynamoDB } from "aws-sdk";
-import {
-  CreditReport,
-  UnderwritingDecision,
-  UnderwritingKeys,
-} from "../models/underwriting";
+import { dynamoDB } from "../config/awsConfig";
+import { CreditReport, UnderwritingDecision } from "../models/underwriting";
 
-const dynamodb = new DynamoDB.DocumentClient();
+const UnderwritingKeys = {
+  creditReportPk: (applicationId: string) => `APPLICATION#${applicationId}`,
+  creditReportSk: (applicationId: string) => `CREDITREPORT#${applicationId}`,
+  decisionPk: (applicationId: string) => `APPLICATION#${applicationId}`,
+  decisionSk: (applicationId: string) => `DECISION#${applicationId}`,
+};
 
 export class UnderwritingRepository {
   private tableName = "Underwriting";
@@ -20,7 +21,7 @@ export class UnderwritingRepository {
       ...creditReport,
     };
 
-    await dynamodb
+    await dynamoDB
       .put({
         TableName: this.tableName,
         Item: item,
@@ -28,8 +29,8 @@ export class UnderwritingRepository {
       .promise();
   }
 
-  async getCreditReport(applicationId: string): Promise<CreditReport | null> {
-    const result = await dynamodb
+  async getCreditReport(applicationId: string): Promise<CreditReport> {
+    const result = await dynamoDB
       .get({
         TableName: this.tableName,
         Key: {
@@ -52,7 +53,7 @@ export class UnderwritingRepository {
       ...decision,
     };
 
-    await dynamodb
+    await dynamoDB
       .put({
         TableName: this.tableName,
         Item: item,
@@ -63,7 +64,7 @@ export class UnderwritingRepository {
   async getUnderwritingDecision(
     applicationId: string
   ): Promise<UnderwritingDecision | null> {
-    const result = await dynamodb
+    const result = await dynamoDB
       .get({
         TableName: this.tableName,
         Key: {

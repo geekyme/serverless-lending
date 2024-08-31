@@ -5,8 +5,3 @@ export interface Document {
   fileLocation: string;
   uploadDate: string;
 }
-
-export const DocumentKeys = {
-  pk: (applicationId: string) => `APPLICATION#${applicationId}`,
-  sk: (documentId: string) => `DOCUMENT#${documentId}`,
-};
