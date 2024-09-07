@@ -134,12 +134,6 @@ The combined LOS and LMS is built using a serverless architecture, primarily lev
   - Generate loan statements
   - Process loan modifications
 
-## 4. Loan Management System (LMS)
-
-### 4.1 Key Components
-
-[... Other components remain unchanged ...]
-
 #### 4.1.2 Payment Processing Engine
 
 - **Purpose**: Manage loan repayments through integration with external payment providers
@@ -361,8 +355,6 @@ The combined LOS and LMS is built using a serverless architecture, primarily lev
 - Generate daily, weekly, and monthly collection and modification reports
 - Provide dashboards for collection performance metrics, including the effectiveness of loan modifications in resolving delinquencies
 - Implement predictive analytics to identify high-risk accounts and suggest proactive modification strategies
-
-## 4. Loan Management System (LMS)
 
 ### 4.2 User Stories
 
