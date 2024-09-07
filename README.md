@@ -2,6 +2,10 @@
 
 This project is a serverless system for lending. It is built with the Serverless Framework and leverages AWS services such as API Gateway, Lambda, DynamoDB, and Cognito.
 
+| Sample Frontend | Backend underwriting workflow |
+| :-------------: | :---------------------------: |
+| ![](./ss1.png)  |        ![](./ss2.png)         |
+
 ### Running LOS
 
 1. cd los
