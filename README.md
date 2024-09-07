@@ -1,6 +1,8 @@
 ## Serverless system for lending
 
-This project is a serverless system for lending. It is built with the Serverless Framework and leverages AWS services such as API Gateway, Lambda, DynamoDB, and Cognito.
+This project is an experiment to see how far I could go with relying almost entirely on **Generative AI** to build a fully functional system.
+
+It is built with the Serverless Framework and leverages AWS services such as API Gateway, Lambda, DynamoDB, and Cognito. Please read the [requirements](./requirements.md) document for more details.
 
 | Sample Frontend | Backend underwriting workflow |
 | :-------------: | :---------------------------: |
