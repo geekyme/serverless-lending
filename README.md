@@ -6,12 +6,19 @@ This project is a serverless system for lending. It is built with the Serverless
 | :-------------: | :---------------------------: |
 | ![](./ss1.png)  |        ![](./ss2.png)         |
 
+## Prerequisites
+
+- Node.js (v22.7.0)
+- npm (v10.8.2)
+- Docker (v27.1.1)
+
 ### Running LOS
 
 1. cd los
 2. npm install
 3. docker compose up -d
-4. npm run deploy:dev
+4. npm run build
+5. npm run deploy:dev
 
 ### Running UI
 
