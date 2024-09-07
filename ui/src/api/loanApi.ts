@@ -1,7 +1,6 @@
 import { LoanApplication } from "../types/Business";
 
-const API_BASE_URL =
-  "http://localhost:4566/restapis/dq2xq2vev7/dev/_user_request_";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 export const submitLoanApplication = async (
   applicationData: LoanApplication
