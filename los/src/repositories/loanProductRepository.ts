@@ -28,23 +28,42 @@ export const loanProductRepository = {
 
   async getById(
     productId: string,
-    versionNumber: number
+    versionNumber?: number
   ): Promise<LoanProduct> {
-    const params = {
-      TableName: TABLE_NAME,
-      Key: {
-        PK: LoanProductKeys.pk(productId),
-        SK: LoanProductKeys.sk(versionNumber),
-      },
-    };
+    if (versionNumber) {
+      const params = {
+        TableName: TABLE_NAME,
+        Key: {
+          PK: LoanProductKeys.pk(productId),
+          SK: LoanProductKeys.sk(versionNumber),
+        },
+      };
 
-    const result = await dynamoDB.get(params).promise();
-    if (!result.Item) {
-      throw new Error(
-        `Loan product not found: ${productId}, version: ${versionNumber}`
-      );
+      const result = await dynamoDB.get(params).promise();
+      if (!result.Item) {
+        throw new Error(
+          `Loan product not found: ${productId}, version: ${versionNumber}`
+        );
+      }
+      return result.Item as LoanProduct;
+    } else {
+      // Get the latest version
+      const params = {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": LoanProductKeys.pk(productId),
+        },
+        ScanIndexForward: false,
+        Limit: 1,
+      };
+
+      const result = await dynamoDB.query(params).promise();
+      if (!result.Items || result.Items.length === 0) {
+        throw new Error(`Loan product not found: ${productId}`);
+      }
+      return result.Items[0] as LoanProduct;
     }
-    return result.Item as LoanProduct;
   },
 
   async update(product: LoanProduct): Promise<void> {

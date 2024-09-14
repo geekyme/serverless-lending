@@ -78,7 +78,7 @@ function getLoanProduct(event: any) {
   }
 
   return loanProductRepository
-    .getById(productId, 1)
+    .getById(productId)
     .then((product) => ({
       statusCode: 200,
       body: JSON.stringify(product),
@@ -100,7 +100,7 @@ function updateLoanProduct(event: any) {
 
   const productData = JSON.parse(event.body || "{}");
   return loanProductRepository
-    .getById(productId, 1)
+    .getById(productId)
     .then((existingProduct) => {
       const updatedProduct: LoanProduct = {
         ...existingProduct,
@@ -129,7 +129,7 @@ function deprecateLoanProduct(event: any) {
   }
 
   return loanProductRepository
-    .getById(productId, 1)
+    .getById(productId)
     .then((existingProduct) => {
       const deprecatedProduct: LoanProduct = {
         ...existingProduct,
@@ -158,7 +158,7 @@ function createLoanProductVersion(event: any) {
   }
 
   return loanProductRepository
-    .getById(productId, 1)
+    .getById(productId)
     .then((existingProduct) => {
       const productData = JSON.parse(event.body || "{}");
       const newVersion: LoanProduct = {
