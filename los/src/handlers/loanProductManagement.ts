@@ -99,9 +99,11 @@ function updateLoanProduct(event: any) {
   }
 
   const productData = JSON.parse(event.body || "{}");
+  console.log("productData", productData);
   return loanProductRepository
     .getById(productId)
     .then((existingProduct) => {
+      console.log("existingProduct", existingProduct);
       const updatedProduct: LoanProduct = {
         ...existingProduct,
         ...productData,
@@ -113,10 +115,13 @@ function updateLoanProduct(event: any) {
         body: JSON.stringify(updatedProduct),
       }));
     })
-    .catch((error) => ({
-      statusCode: 404,
-      body: JSON.stringify({ message: "Product not found" }),
-    }));
+    .catch((error) => {
+      console.error("error", error);
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: "Product not found" }),
+      };
+    });
 }
 
 function deprecateLoanProduct(event: any) {

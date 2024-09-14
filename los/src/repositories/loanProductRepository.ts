@@ -74,7 +74,10 @@ export const loanProductRepository = {
         SK: LoanProductKeys.sk(product.versionNumber),
       },
       UpdateExpression:
-        "set productName = :pn, productType = :pt, minLoanAmount = :min, maxLoanAmount = :max, interestRateType = :irt, baseInterestRate = :bir, termOptions = :to, eligibilityCriteria = :ec, fees = :f, collateralRequirements = :cr, underwritingGuidelines = :ug, status = :s, updatedAt = :ua",
+        "set productName = :pn, productType = :pt, minLoanAmount = :min, maxLoanAmount = :max, interestRateType = :irt, baseInterestRate = :bir, termOptions = :to, eligibilityCriteria = :ec, fees = :f, collateralRequirements = :cr, underwritingGuidelines = :ug, #status = :s, updatedAt = :ua",
+      ExpressionAttributeNames: {
+        "#status": "status",
+      },
       ExpressionAttributeValues: {
         ":pn": product.productName,
         ":pt": product.productType,
