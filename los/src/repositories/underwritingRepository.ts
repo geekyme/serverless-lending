@@ -40,7 +40,12 @@ export class UnderwritingRepository {
       })
       .promise();
 
-    return (result.Item as CreditReport) || null;
+    if (!result.Item) {
+      throw new Error(
+        `Credit report not found for application: ${applicationId}`
+      );
+    }
+    return result.Item as CreditReport;
   }
 
   async createUnderwritingDecision(
@@ -63,7 +68,7 @@ export class UnderwritingRepository {
 
   async getUnderwritingDecision(
     applicationId: string
-  ): Promise<UnderwritingDecision | null> {
+  ): Promise<UnderwritingDecision> {
     const result = await dynamoDB
       .get({
         TableName: this.tableName,
@@ -74,7 +79,12 @@ export class UnderwritingRepository {
       })
       .promise();
 
-    return (result.Item as UnderwritingDecision) || null;
+    if (!result.Item) {
+      throw new Error(
+        `Underwriting decision not found for application: ${applicationId}`
+      );
+    }
+    return result.Item as UnderwritingDecision;
   }
 }
 

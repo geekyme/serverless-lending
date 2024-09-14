@@ -21,4 +21,20 @@ export const businessRepository = {
 
     await dynamoDB.put(params).promise();
   },
+
+  async getById(businessId: string): Promise<Business> {
+    const params = {
+      TableName: "Businesses",
+      Key: {
+        PK: BusinessKeys.pk(businessId),
+        SK: BusinessKeys.sk(businessId),
+      },
+    };
+
+    const result = await dynamoDB.get(params).promise();
+    if (!result.Item) {
+      throw new Error(`Business not found: ${businessId}`);
+    }
+    return result.Item as Business;
+  },
 };

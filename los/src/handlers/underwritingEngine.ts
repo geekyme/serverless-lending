@@ -1,39 +1,31 @@
 import { Handler } from "aws-lambda";
 import { loanApplicationRepository } from "../repositories/loanApplicationRepository";
+import { loanProductRepository } from "../repositories/loanProductRepository";
 import { underwritingRepository } from "../repositories/underwritingRepository";
 import { UnderwritingDecision, CreditReport } from "../models/underwriting";
+import { LoanProduct } from "../models/loanProduct";
+import { LoanApplication } from "../models/loanApplication";
 
 export const handler: Handler = async (event) => {
   try {
     const { applicationId } = event;
 
-    // Fetch loan application and credit report
+    // Fetch loan application, product, and credit report
     const application = await loanApplicationRepository.getById(applicationId);
-    const creditReport: CreditReport =
-      await underwritingRepository.getCreditReport(applicationId);
+    const product = await loanProductRepository.getById(
+      application.productId,
+      1
+    );
+    const creditReport = await underwritingRepository.getCreditReport(
+      applicationId
+    );
 
-    // Simple underwriting logic (this should be much more comprehensive in a real system)
-    let decision: UnderwritingDecision;
-    if (creditReport.creditScore >= 700) {
-      decision = {
-        decision: "APPROVED",
-        decisionDate: new Date().toISOString(),
-        approvedAmount: application.requestedAmount,
-        interestRate: 5.0,
-        term: 60, // Assuming a 5-year term
-        conditions: ["Proof of income", "Verification of employment"],
-        reasonCodes: ["GOOD_CREDIT_SCORE", "SUFFICIENT_INCOME"],
-        underwriterNotes:
-          "Approved based on excellent credit score and sufficient income.",
-      };
-    } else {
-      decision = {
-        decision: "DENIED",
-        decisionDate: new Date().toISOString(),
-        reasonCodes: ["LOW_CREDIT_SCORE"],
-        underwriterNotes: "Denied due to low credit score.",
-      };
-    }
+    // Enhanced underwriting logic considering product details
+    const decision = makeUnderwritingDecision(
+      application,
+      product,
+      creditReport
+    );
 
     const decisionWithId = {
       applicationId,
@@ -52,3 +44,41 @@ export const handler: Handler = async (event) => {
     throw error;
   }
 };
+
+function makeUnderwritingDecision(
+  application: LoanApplication,
+  product: LoanProduct,
+  creditReport: CreditReport
+): UnderwritingDecision {
+  const minCreditScore = product.eligibilityCriteria.minCreditScore;
+
+  if (creditReport.creditScore >= minCreditScore) {
+    const approvedAmount = Math.min(
+      application.requestedAmount,
+      product.maxLoanAmount
+    );
+    const interestRate =
+      product.baseInterestRate + (800 - creditReport.creditScore) * 0.01;
+
+    return {
+      decision: "APPROVED",
+      decisionDate: new Date().toISOString(),
+      approvedAmount,
+      interestRate,
+      term: application.loanTerm,
+      conditions: product.eligibilityCriteria?.conditions ?? [],
+      reasonCodes: ["MEETS_CREDIT_REQUIREMENTS", "WITHIN_PRODUCT_LIMITS"],
+      underwriterNotes: `Approved based on credit score and product eligibility. Interest rate: ${interestRate.toFixed(
+        2
+      )}%`,
+    };
+  } else {
+    return {
+      decision: "DENIED",
+      decisionDate: new Date().toISOString(),
+      reasonCodes: ["BELOW_MIN_CREDIT_SCORE"],
+      underwriterNotes:
+        "Denied due to credit score below product minimum requirement.",
+    };
+  }
+}

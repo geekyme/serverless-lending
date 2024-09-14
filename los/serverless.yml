@@ -60,6 +60,37 @@ functions:
       NOTIFICATION_TOPIC_ARN:
         Ref: NotificationTopic
 
+  loanProductManagement:
+    handler: dist/handlers/loanProductManagement.handler
+    events:
+      - http:
+          path: loan-products
+          method: post
+      - http:
+          path: loan-products
+          method: get
+      - http:
+          path: loan-products/{productId}
+          method: get
+      - http:
+          path: loan-products/{productId}
+          method: put
+      - http:
+          path: loan-products/{productId}
+          method: delete
+      - http:
+          path: loan-products/{productId}/versions
+          method: post
+      - http:
+          path: loan-products/{productId}/versions
+          method: get
+      - http:
+          path: loan-products/{productId}/versions/{versionNumber}
+          method: get
+      - http:
+          path: loan-products/search
+          method: get
+
 stepFunctions:
   stateMachines:
     loanApplicationWorkflow:
@@ -130,6 +161,35 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: Underwriting
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    LoanProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: LoanProducts
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S

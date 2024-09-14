@@ -1,18 +1,16 @@
+import { Document } from "./document";
+
 export interface LoanApplication {
   id: string;
   businessId: string;
-  status: "SUBMITTED" | "IN_REVIEW" | "APPROVED" | "DENIED" | "FUNDED";
+  productId: string; // Add this line
+  status: string;
   submissionDate: string;
   requestedAmount: number;
-  approvedAmount?: number;
   loanPurpose: string;
-  loanTerm: number; // in months
-  interestRate?: number;
+  loanTerm: number;
   collateralType?: string;
   collateralValue?: number;
-  creditScore?: number;
-  debtServiceCoverageRatio?: number;
-  lastReviewDate?: string;
-  underwriterNotes?: string;
   applicantEmail: string;
+  documents?: Document[];
 }

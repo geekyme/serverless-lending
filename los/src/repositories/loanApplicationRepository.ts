@@ -36,6 +36,9 @@ export const loanApplicationRepository = {
     };
 
     const result = await dynamoDB.get(params).promise();
+    if (!result.Item) {
+      throw new Error(`Loan application not found: ${applicationId}`);
+    }
     return result.Item as LoanApplication;
   },
 
