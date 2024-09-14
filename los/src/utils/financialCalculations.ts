@@ -4,23 +4,31 @@ import {
   IncomeStatement,
 } from "../models/business";
 import { LoanApplication } from "../models/loanApplication";
+import { LoanProduct } from "../models/loanProduct";
 
 export function calculateDebtServiceCoverageRatio(
   financialStatements: FinancialStatements,
-  loanApplication: LoanApplication
+  loanApplication: LoanApplication,
+  loanProduct: LoanProduct
 ): number {
   const { incomeStatement } = financialStatements;
-  const annualDebtService = calculateAnnualDebtService(loanApplication);
+  const annualDebtService = calculateAnnualDebtService(
+    loanApplication,
+    loanProduct
+  );
   const ebitda = calculateEBITDA(incomeStatement);
   const dscr = ebitda / annualDebtService;
   return Number(dscr.toFixed(2));
 }
 
-function calculateAnnualDebtService(loanApplication: LoanApplication): number {
+function calculateAnnualDebtService(
+  loanApplication: LoanApplication,
+  loanProduct: LoanProduct
+): number {
   const monthlyPayment = calculateMonthlyPayment(
     loanApplication.requestedAmount,
     loanApplication.loanTerm,
-    loanApplication.interestRate || 0
+    loanProduct.baseInterestRate
   );
   return monthlyPayment * 12;
 }

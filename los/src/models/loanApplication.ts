@@ -3,12 +3,13 @@ import { Document } from "./document";
 export interface LoanApplication {
   id: string;
   businessId: string;
-  productId: string; // Add this line
+  productId: string;
   status: string;
   submissionDate: string;
   requestedAmount: number;
-  loanPurpose: string;
   loanTerm: number;
+  loanPurpose: string;
+  // interestRate field removed
   collateralType?: string;
   collateralValue?: number;
   applicantEmail: string;
