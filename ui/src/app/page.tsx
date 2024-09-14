@@ -30,7 +30,7 @@ export default function Home() {
         </div>
       </div>
       <Link
-        href="/loan-application"
+        href="/apply"
         className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition duration-300"
       >
         Start Your Application

@@ -1,6 +1,6 @@
 export interface Business {
+  id: string;
   businessName: string;
-  email: string;
   legalName: string;
   tradingName?: string;
   businessStructure:
@@ -13,6 +13,7 @@ export interface Business {
   numberOfEmployees: number;
   annualRevenue: number;
   industryCode: string;
+  email: string;
   address: {
     street: string;
     city: string;
@@ -61,6 +62,8 @@ export interface LoanDetails {
 }
 
 export interface LoanApplication {
+  businessId: string; // Add this line
+  productId: string; // Add this line
   business: Business;
   requestedAmount: number;
   loanPurpose: string;
