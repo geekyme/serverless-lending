@@ -26,6 +26,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         1
       );
 
+      console.log("Product:", product);
+
       // Validate that the requested amount is within the product's range
       if (
         applicationData.requestedAmount < product.minLoanAmount ||

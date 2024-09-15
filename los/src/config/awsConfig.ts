@@ -1,8 +1,8 @@
 import AWS from "aws-sdk";
 
-if (process.env.STAGE === "dev") {
+if (process.env.AWS_ENDPOINT_URL) {
   const localstackConfig = {
-    endpoint: "http://localstack:4566",
+    endpoint: process.env.AWS_ENDPOINT_URL,
     region: "us-east-1",
     credentials: {
       accessKeyId: "test",

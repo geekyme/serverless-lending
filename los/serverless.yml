@@ -2,24 +2,23 @@ service: loan-origination-system
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
+  timeout: 15
+  memorySize: 512
   environment:
     STAGE: ${self:provider.stage}
+    SLS_DEBUG: "*"
   deploymentMethod: direct
-  logs:
-    lambda: true
 
 custom:
   localstack:
     stages:
       - dev
-    host: http://localhost
-    edgePort: 4566
     autostart: false
     lambda:
-      mountCode: true
+      mountCode: false
   documentsBucketName: los-documents-${self:provider.stage}
 
 plugins:
@@ -37,7 +36,6 @@ functions:
 
   documentUpload:
     handler: dist/handlers/documentUpload.handler
-    timeout: 15
     environment:
       DOCUMENTS_BUCKET: ${self:custom.documentsBucketName}
       LOAN_APPLICATION_WORKFLOW_ARN:
@@ -55,7 +53,6 @@ functions:
 
   notificationSystem:
     handler: dist/handlers/notificationSystem.handler
-    timeout: 120
     environment:
       NOTIFICATION_TOPIC_ARN:
         Ref: NotificationTopic
