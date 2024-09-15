@@ -57,7 +57,7 @@ const LoanApplicationForm: React.FC = () => {
     },
     requestedAmount: 0,
     loanPurpose: "",
-    loanTerm: 0,
+    loanTerm: 0, // Initialize as a number
     collateralType: "",
     collateralValue: 0,
     applicantEmail: "",
@@ -71,7 +71,7 @@ const LoanApplicationForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: name === "loanTerm" ? parseInt(value, 10) || 0 : value,
     }));
   };
 
