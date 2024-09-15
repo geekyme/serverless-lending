@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { submitLoanApplication } from "@/api/loanApi";
+import React, { useState, useRef } from "react";
+import { submitLoanApplication, uploadDocument } from "@/api/loanApi";
 import LoanProductSelector from "@/components/LoanProductSelector";
 import { toast } from "react-hot-toast";
 import { LoanApplication, Business, LoanDetails } from "@/types/Business";
@@ -63,6 +63,11 @@ const LoanApplicationForm: React.FC = () => {
     applicantEmail: "",
   });
 
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -97,10 +102,55 @@ const LoanApplicationForm: React.FC = () => {
     try {
       const result = await submitLoanApplication(formData);
       toast.success("Loan application submitted successfully");
-      setStep(3); // Move to document upload step
+      setApplicationId(result.applicationId);
+      setStep(3);
     } catch (error) {
       console.error("Failed to submit loan application:", error);
       toast.error("Failed to submit loan application");
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleCompleteApplication = async () => {
+    if (!applicationId) {
+      toast.error("Application ID is missing");
+      return;
+    }
+
+    try {
+      // Upload documents
+      for (const file of selectedFiles) {
+        const reader = new FileReader();
+        await new Promise((resolve, reject) => {
+          reader.onload = async (event) => {
+            const fileContent = event.target?.result as string;
+            try {
+              await uploadDocument({
+                applicationId,
+                documentType: file.type,
+                fileContent: fileContent.split(",")[1], // Remove data URL prefix
+                fileName: file.name,
+              });
+              resolve(null);
+            } catch (error) {
+              reject(error);
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      toast.success("Documents uploaded successfully!");
+      // You might want to redirect the user or update the UI state here
+    } catch (error) {
+      console.error("Failed to upload documents:", error);
+      toast.error("Failed to upload documents");
     }
   };
 
@@ -302,8 +352,30 @@ const LoanApplicationForm: React.FC = () => {
   const renderDocumentUpload = () => (
     <div className="mt-6">
       <h3 className="text-xl font-semibold mb-4">Upload Documents</h3>
-      {/* Implement document upload functionality here */}
-      <p>Document upload functionality to be implemented.</p>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        className="mb-4"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        multiple
+      />
+      {selectedFiles.length > 0 && (
+        <div>
+          <h4 className="font-semibold mb-2">Selected Documents:</h4>
+          <ul className="list-disc pl-5">
+            {selectedFiles.map((file, index) => (
+              <li key={index}>{file.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <button
+        onClick={handleCompleteApplication}
+        className="mt-4 w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 transition duration-300"
+      >
+        Upload Documents and Complete Application
+      </button>
     </div>
   );
 
@@ -348,7 +420,7 @@ const LoanApplicationForm: React.FC = () => {
       <div className="bg-white shadow-md rounded-lg p-6">
         {step === 1 && renderBusinessInfoForm()}
         {step === 2 && renderLoanDetailsForm()}
-        {step === 3 && renderDocumentUpload()}
+        {step === 3 && applicationId && renderDocumentUpload()}
       </div>
     </div>
   );
