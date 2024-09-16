@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react";
 import { submitLoanApplication, uploadDocument } from "@/api/loanApi";
 import LoanProductSelector from "@/components/LoanProductSelector";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { LoanApplication, Business, LoanDetails } from "@/types/Business";
 
 const LoanApplicationForm: React.FC = () => {
@@ -57,7 +57,7 @@ const LoanApplicationForm: React.FC = () => {
     },
     requestedAmount: 0,
     loanPurpose: "",
-    loanTerm: 0, // Initialize as a number
+    loanTerm: 0,
     collateralType: "",
     collateralValue: 0,
     applicantEmail: "",
@@ -66,6 +66,7 @@ const LoanApplicationForm: React.FC = () => {
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -133,7 +134,7 @@ const LoanApplicationForm: React.FC = () => {
               await uploadDocument({
                 applicationId,
                 documentType: file.type,
-                fileContent: fileContent.split(",")[1], // Remove data URL prefix
+                fileContent: fileContent.split(",")[1],
                 fileName: file.name,
               });
               resolve(null);
@@ -147,7 +148,7 @@ const LoanApplicationForm: React.FC = () => {
       }
 
       toast.success("Documents uploaded successfully!");
-      // You might want to redirect the user or update the UI state here
+      setIsCompleted(true);
     } catch (error) {
       console.error("Failed to upload documents:", error);
       toast.error("Failed to upload documents");
@@ -231,7 +232,6 @@ const LoanApplicationForm: React.FC = () => {
             required
           />
         </div>
-        {/* Add more fields for business information */}
         <button
           type="button"
           onClick={() => setStep(2)}
@@ -379,49 +379,72 @@ const LoanApplicationForm: React.FC = () => {
     </div>
   );
 
+  const renderThankYou = () => (
+    <div className="text-center">
+      <h2 className="text-2xl font-semibold mb-4">Thank You!</h2>
+      <p className="text-lg">
+        Your application has been successfully submitted.
+      </p>
+      <p className="mt-2">We will be in touch with you soon.</p>
+    </div>
+  );
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center">
-          <div
-            className={`w-1/3 h-2 ${step >= 1 ? "bg-blue-600" : "bg-gray-300"}`}
-          ></div>
-          <div
-            className={`w-1/3 h-2 ${step >= 2 ? "bg-blue-600" : "bg-gray-300"}`}
-          ></div>
-          <div
-            className={`w-1/3 h-2 ${step >= 3 ? "bg-blue-600" : "bg-gray-300"}`}
-          ></div>
-        </div>
-        <div className="flex justify-between mt-2">
-          <span
-            className={`text-sm ${
-              step === 1 ? "text-blue-600 font-semibold" : "text-gray-500"
-            }`}
-          >
-            Business Information
-          </span>
-          <span
-            className={`text-sm ${
-              step === 2 ? "text-blue-600 font-semibold" : "text-gray-500"
-            }`}
-          >
-            Loan Details
-          </span>
-          <span
-            className={`text-sm ${
-              step === 3 ? "text-blue-600 font-semibold" : "text-gray-500"
-            }`}
-          >
-            Document Upload
-          </span>
-        </div>
-      </div>
-      <div className="bg-white shadow-md rounded-lg p-6">
-        {step === 1 && renderBusinessInfoForm()}
-        {step === 2 && renderLoanDetailsForm()}
-        {step === 3 && applicationId && renderDocumentUpload()}
-      </div>
+      <Toaster position="top-center" />
+      {!isCompleted ? (
+        <>
+          <div className="mb-6">
+            <div className="flex items-center">
+              <div
+                className={`w-1/3 h-2 ${
+                  step >= 1 ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              ></div>
+              <div
+                className={`w-1/3 h-2 ${
+                  step >= 2 ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              ></div>
+              <div
+                className={`w-1/3 h-2 ${
+                  step >= 3 ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              ></div>
+            </div>
+            <div className="flex justify-between mt-2">
+              <span
+                className={`text-sm ${
+                  step === 1 ? "text-blue-600 font-semibold" : "text-gray-500"
+                }`}
+              >
+                Business Information
+              </span>
+              <span
+                className={`text-sm ${
+                  step === 2 ? "text-blue-600 font-semibold" : "text-gray-500"
+                }`}
+              >
+                Loan Details
+              </span>
+              <span
+                className={`text-sm ${
+                  step === 3 ? "text-blue-600 font-semibold" : "text-gray-500"
+                }`}
+              >
+                Document Upload
+              </span>
+            </div>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6">
+            {step === 1 && renderBusinessInfoForm()}
+            {step === 2 && renderLoanDetailsForm()}
+            {step === 3 && applicationId && renderDocumentUpload()}
+          </div>
+        </>
+      ) : (
+        renderThankYou()
+      )}
     </div>
   );
 };
