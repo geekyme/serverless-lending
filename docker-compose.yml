@@ -1,0 +1,20 @@
+services:
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
+    image: localstack/localstack
+    ports:
+      - "4566:4566" # LocalStack Gateway
+      - "4510-4559:4510-4559" # external services port range
+    environment:
+      - DEBUG=1
+      - GATEWAY_LISTEN=0.0.0.0:4566
+      - EAGER_SERVICE_LOADING=1
+      - DISABLE_CORS_CHECKS=1
+      - DISABLE_CUSTOM_CORS_APIGATEWAY=1
+      - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=60
+      - SERVICES=s3,dynamodb,lambda,apigateway,stepfunctions,sns,cloudformation,logs,iam,events
+    volumes:
+      - "./.localstack:/var/lib/localstack"
+      - "./.docker-compose/localstack/etc/localstack/init/ready.d:/etc/localstack/init/ready.d"
+      # for docker lambda executor
+      - /var/run/docker.sock:/var/run/docker.sock
