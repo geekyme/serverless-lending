@@ -22,7 +22,7 @@
         {
           "Variable": "$.decision",
           "StringEquals": "APPROVED",
-          "Next": "SendApprovalNotification"
+          "Next": "ApprovalActions"
         },
         {
           "Variable": "$.decision",
@@ -31,16 +31,47 @@
         }
       ]
     },
-    "SendApprovalNotification": {
-      "Type": "Task",
-      "Resource": {
-        "Fn::GetAtt": ["notificationSystem", "Arn"]
-      },
-      "Parameters": {
-        "applicationId.$": "$.applicationId",
-        "message": "Your loan application has been approved!",
-        "recipient.$": "$.applicantEmail"
-      },
+    "ApprovalActions": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "SendApprovalNotification",
+          "States": {
+            "SendApprovalNotification": {
+              "Type": "Task",
+              "Resource": {
+                "Fn::GetAtt": ["notificationSystem", "Arn"]
+              },
+              "Parameters": {
+                "applicationId.$": "$.applicationId",
+                "message": "Your loan application has been approved!",
+                "recipient.$": "$.applicantEmail"
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "EmitLoanApprovedEvent",
+          "States": {
+            "EmitLoanApprovedEvent": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::events:putEvents",
+              "Parameters": {
+                "Entries": [
+                  {
+                    "Detail.$": "$",
+                    "DetailType": "LoanApproved",
+                    "Source": "com.loansystem.los",
+                    "EventBusName": "LoanSystemEventBus"
+                  }
+                ]
+              },
+              "End": true
+            }
+          }
+        }
+      ],
       "End": true
     },
     "SendDenialNotification": {

@@ -1,6 +1,8 @@
 import { dynamoDB } from "../config/awsConfig";
 import { CreditReport, UnderwritingDecision } from "../models/underwriting";
 
+const TABLE_NAME = `Underwriting-${process.env.STAGE}`;
+
 const UnderwritingKeys = {
   creditReportPk: (applicationId: string) => `APPLICATION#${applicationId}`,
   creditReportSk: (applicationId: string) => `CREDITREPORT#${applicationId}`,
@@ -9,8 +11,6 @@ const UnderwritingKeys = {
 };
 
 export class UnderwritingRepository {
-  private tableName = "Underwriting";
-
   async createCreditReport(
     applicationId: string,
     creditReport: CreditReport
@@ -23,7 +23,7 @@ export class UnderwritingRepository {
 
     await dynamoDB
       .put({
-        TableName: this.tableName,
+        TableName: TABLE_NAME,
         Item: item,
       })
       .promise();
@@ -32,7 +32,7 @@ export class UnderwritingRepository {
   async getCreditReport(applicationId: string): Promise<CreditReport> {
     const result = await dynamoDB
       .get({
-        TableName: this.tableName,
+        TableName: TABLE_NAME,
         Key: {
           PK: UnderwritingKeys.creditReportPk(applicationId),
           SK: UnderwritingKeys.creditReportSk(applicationId),
@@ -60,7 +60,7 @@ export class UnderwritingRepository {
 
     await dynamoDB
       .put({
-        TableName: this.tableName,
+        TableName: TABLE_NAME,
         Item: item,
       })
       .promise();
@@ -71,7 +71,7 @@ export class UnderwritingRepository {
   ): Promise<UnderwritingDecision> {
     const result = await dynamoDB
       .get({
-        TableName: this.tableName,
+        TableName: TABLE_NAME,
         Key: {
           PK: UnderwritingKeys.decisionPk(applicationId),
           SK: UnderwritingKeys.decisionSk(applicationId),

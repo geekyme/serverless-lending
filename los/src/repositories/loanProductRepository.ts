@@ -1,7 +1,7 @@
 import { dynamoDB } from "../config/awsConfig";
 import { LoanProduct } from "../models/loanProduct";
 
-const TABLE_NAME = "LoanProducts";
+const TABLE_NAME = `LoanProducts-${process.env.STAGE}`;
 
 const LoanProductKeys = {
   pk: (id: string) => `PRODUCT#${id}`,

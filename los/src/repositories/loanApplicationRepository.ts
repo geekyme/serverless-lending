@@ -2,6 +2,8 @@ import { dynamoDB } from "../config/awsConfig";
 import { LoanApplication } from "../models/loanApplication";
 import { Document } from "../models/document";
 
+const TABLE_NAME = `LoanApplications-${process.env.STAGE}`;
+
 const LoanApplicationKeys = {
   pk: (id: string) => `APPLICATION#${id}`,
   sk: (id: string) => `METADATA#${id}`,
@@ -13,7 +15,7 @@ export const loanApplicationRepository = {
   dynamoDB,
   async create(loanApplication: LoanApplication): Promise<void> {
     const params = {
-      TableName: "LoanApplications",
+      TableName: TABLE_NAME,
       Item: {
         PK: LoanApplicationKeys.pk(loanApplication.id),
         SK: LoanApplicationKeys.sk(loanApplication.id),
@@ -28,7 +30,7 @@ export const loanApplicationRepository = {
 
   async getById(applicationId: string): Promise<LoanApplication> {
     const params = {
-      TableName: "LoanApplications",
+      TableName: TABLE_NAME,
       Key: {
         PK: LoanApplicationKeys.pk(applicationId),
         SK: LoanApplicationKeys.sk(applicationId),
@@ -44,7 +46,7 @@ export const loanApplicationRepository = {
 
   async addDocument(document: Document): Promise<void> {
     const params = {
-      TableName: "LoanApplications",
+      TableName: TABLE_NAME,
       Key: {
         PK: LoanApplicationKeys.pk(document.applicationId),
         SK: LoanApplicationKeys.sk(document.applicationId),

@@ -1,6 +1,8 @@
 import { dynamoDB } from "../config/awsConfig";
 import { Business } from "../models/business";
 
+const TABLE_NAME = `Businesses-${process.env.STAGE}`;
+
 export const BusinessKeys = {
   pk: (id: string) => `BUSINESS#${id}`,
   sk: (id: string) => `METADATA#${id}`,
@@ -11,7 +13,7 @@ export const BusinessKeys = {
 export const businessRepository = {
   async create(business: Business): Promise<void> {
     const params = {
-      TableName: "Businesses",
+      TableName: TABLE_NAME,
       Item: {
         PK: BusinessKeys.pk(business.id),
         SK: BusinessKeys.sk(business.id),
@@ -24,7 +26,7 @@ export const businessRepository = {
 
   async getById(businessId: string): Promise<Business> {
     const params = {
-      TableName: "Businesses",
+      TableName: TABLE_NAME,
       Key: {
         PK: BusinessKeys.pk(businessId),
         SK: BusinessKeys.sk(businessId),

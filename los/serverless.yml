@@ -10,6 +10,7 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     SLS_DEBUG: "*"
+    LENDING_EVENT_BUS: ${self:custom.lendingEventBus}
   deploymentMethod: direct
 
 custom:
@@ -20,6 +21,7 @@ custom:
     lambda:
       mountCode: false
   documentsBucketName: los-documents-${self:provider.stage}
+  lendingEventBus: lending-event-bus-${self:provider.stage}
 
 plugins:
   - serverless-step-functions
@@ -38,8 +40,7 @@ functions:
     handler: dist/handlers/documentUpload.handler
     environment:
       DOCUMENTS_BUCKET: ${self:custom.documentsBucketName}
-      LOAN_APPLICATION_WORKFLOW_ARN:
-        Ref: LoanApplicationWorkflow
+      LOAN_APPLICATION_WORKFLOW_ARN: !Ref LoanApplicationWorkflow
     events:
       - http:
           path: documents
@@ -54,8 +55,7 @@ functions:
   notificationSystem:
     handler: dist/handlers/notificationSystem.handler
     environment:
-      NOTIFICATION_TOPIC_ARN:
-        Ref: NotificationTopic
+      NOTIFICATION_TOPIC_ARN: !Ref NotificationTopic
 
   loanProductManagement:
     handler: dist/handlers/loanProductManagement.handler
@@ -92,6 +92,7 @@ stepFunctions:
   stateMachines:
     loanApplicationWorkflow:
       id: LoanApplicationWorkflow
+      name: loan-application-workflow-${self:provider.stage}
       definition: ${file(stepFunctions/loanApplicationWorkflow.json)}
 
 resources:
@@ -99,7 +100,7 @@ resources:
     LoanApplicationsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: LoanApplications
+        TableName: LoanApplications-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -128,7 +129,7 @@ resources:
     BusinessesTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Businesses
+        TableName: Businesses-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -157,7 +158,7 @@ resources:
     UnderwritingTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Underwriting
+        TableName: Underwriting-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -186,7 +187,7 @@ resources:
     LoanProductsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: LoanProducts
+        TableName: LoanProducts-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -221,3 +222,8 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: loan-notifications-${self:provider.stage}
+
+    LendingEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:custom.lendingEventBus}
