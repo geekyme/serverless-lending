@@ -59,8 +59,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
 
     const business: Business = {
-      id: businessId,
       ...applicationData.business,
+      id: businessId,
     };
 
     await businessRepository.create(business);
@@ -76,7 +76,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       loanTerm: applicationData.loanTerm,
       collateralType: applicationData.collateralType,
       collateralValue: applicationData.collateralValue,
-      applicantEmail: applicationData.applicantEmail,
+      applicantEmail: business.email,
     };
 
     await loanApplicationRepository.create(loanApplication);

@@ -16,6 +16,7 @@ export interface Business {
   contactInformation: ContactInformation;
   financialStatements: FinancialStatements;
   creditHistory?: CreditHistory;
+  email: string;
 }
 
 interface Address {
